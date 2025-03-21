@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { View, Text, FlatList, StyleSheet } from "react-native";
 import { fetchLiveMatches, Match } from "../utils/api";
+import { Link } from "expo-router";
 
 export default function Home() {
   const [matches, setMatches] = useState<Match[]>([]);
@@ -32,6 +33,10 @@ export default function Home() {
       ) : (
         <Text>Aucun match en cours</Text>
       )}
+
+      <Link href="/standings">
+        <Text style={styles.link}>Voir les Classements 📊</Text>
+      </Link>
     </View>
   );
 }
@@ -40,4 +45,5 @@ const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   title: { fontSize: 24, fontWeight: "bold", marginBottom: 10 },
   matchCard: { padding: 10, marginVertical: 5, backgroundColor: "#eee", borderRadius: 8 },
+  link: { marginTop: 20, fontSize: 18, color: "blue", textAlign: "center" },
 });
