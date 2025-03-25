@@ -1,9 +1,10 @@
 import axios from "axios";
 import { API_FOOTBALL_KEY } from "@env"; 
 
+// lien API
 const API_URL = "https://v3.football.api-sports.io/";
 
-// Liste des ligues
+// Liste des ligues (plus connues)
 export const LEAGUES = [
   { id: 39, name: "Premier League" }, 
   { id: 140, name: "La Liga" }, 
@@ -11,22 +12,37 @@ export const LEAGUES = [
   { id: 78, name: "Bundesliga" }, 
 ];
 
-// Données retournées par l'API
-export type Match = {
-  fixture: { id: number; status: { elapsed: number } };
-  teams: { home: { name: string }; away: { name: string } };
-  goals: { home: number | null; away: number | null };
-};
+// Types pour comprendre ce qu’on récupère depuis l’API
 
 export type TeamStanding = {
   rank: number;
-  team: { name: string; logo: string };
+  team: {
+    id: number;
+    name: string;
+    logo: string;
+  };
   points: number;
-  goalsDiff: number;
-  all: { played: number; win: number; draw: number; lose: number };
 };
 
-// Matchs en direct
+export type Match = {
+  fixture: {
+    id: number;
+    date: string;
+    status: {
+      elapsed: number;
+    };
+  };
+  teams: {
+    home: { id: number; name: string; logo: string };
+    away: { id: number; name: string; logo: string };
+  };
+  goals: {
+    home: number | null;
+    away: number | null;
+  };
+};
+
+// cherche tous les matchs en cours
 export const fetchLiveMatches = async (): Promise<Match[]> => {
   try {
     const response = await axios.get(`${API_URL}fixtures?live=all`, {
@@ -39,22 +55,22 @@ export const fetchLiveMatches = async (): Promise<Match[]> => {
   }
 };
 
-// Classement d'une ligue
+// récupère le classement d’une ligue
 export const fetchLeagueStandings = async (leagueId: number): Promise<TeamStanding[]> => {
-    const availableSeason = 2023; // ✅ Saison valide pour le plan gratuit
-    try {
-      const response = await axios.get(`${API_URL}standings?league=${leagueId}&season=${availableSeason}`, {
-        headers: { "x-apisports-key": API_FOOTBALL_KEY },
-      });
-  
-      if (!response.data.response || response.data.response.length === 0) {
-        return [];
-      }
-  
-      return response.data.response[0]?.league?.standings[0] || [];
-    } catch (error) {
+  const availableSeason = 2023; // 2023 car c’est la dernière saison dispo avec l'api gratuite
+
+  try {
+    const response = await axios.get(`${API_URL}standings?league=${leagueId}&season=${availableSeason}`, {
+      headers: { "x-apisports-key": API_FOOTBALL_KEY },
+    });
+
+    if (!response.data.response || response.data.response.length === 0) {
       return [];
     }
-  };
-  
-  
+
+    // je récupère la première ligne de standings, c’est là que sont les équipes
+    return response.data.response[0]?.league?.standings[0] || [];
+  } catch (error) {
+    return [];
+  }
+};
